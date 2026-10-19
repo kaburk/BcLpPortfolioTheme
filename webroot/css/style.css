@@ -1,0 +1,326 @@
+@charset "UTF-8";
+/* ==========================================================================
+   BcLpPortfolioTheme : baserCMS5 ポートフォリオ LP テーマ
+
+   サイト全体（ヘッダー・フッター・フォーム画面）と、公開画面だけに効かせる本文の配置
+   - 接頭辞 pf-（BEM）
+   - 地の色はサブ（濃い色）。文字は白、ボタンはメイン（明るい色）
+   - 色はテーマ設定の4色（config.css の --theme-*）から作る。未保存のときは下記のフォールバック色
+   - 本文（BurgerEditor）の見た目は bge_style.css
+   - ブレークポイント: 640px / 960px（ヘッダーのナビ）
+   ========================================================================== */
+
+/* ---- Tokens（bge_style.css にも同じものがある。値を変えるときは両方） ---- */
+:root {
+	/* フォールバックの値は theme_configs.csv の初期値と同じにする */
+	--pf-main: var(--theme-main, #c6f135);
+	--pf-sub: var(--theme-sub, #111214);
+	--pf-link: var(--theme-link, #c6f135);
+	--pf-hover: var(--theme-hover, #e3ff7a);
+	/* 地・面・線（地はサブ。文字は白。サブを明るい色にしたときは、下の @supports で文字が黒になる） */
+	--pf-bg: var(--pf-sub);
+	--pf-fg: #fff;
+	--pf-bg-alt: color-mix(in srgb, var(--pf-sub) 93%, var(--pf-fg));
+	--pf-surface: color-mix(in srgb, var(--pf-sub) 85%, var(--pf-fg));
+	--pf-field: var(--pf-bg-alt);
+	--pf-muted: color-mix(in srgb, var(--pf-fg) 76%, var(--pf-sub));
+	--pf-line: color-mix(in srgb, var(--pf-fg) 16%, transparent);
+	--pf-line-strong: color-mix(in srgb, var(--pf-fg) 34%, transparent);
+	/* メインの面・線・ボタン */
+	--pf-main-soft: color-mix(in srgb, var(--pf-main) 14%, transparent);
+	--pf-main-line: color-mix(in srgb, var(--pf-main) 55%, transparent);
+	--pf-main-hover: color-mix(in srgb, var(--pf-main) 78%, #fff);
+	--pf-on-main: var(--pf-sub);
+	/* 地の上に載せるリンクの色（濃い地で読めるよう、下の @supports で明るさを上げる） */
+	--pf-link-ink: var(--pf-link);
+	--pf-hover-ink: var(--pf-hover);
+	--pf-font: "Noto Sans JP", system-ui, sans-serif;
+	--pf-font-en: "Space Grotesk", "Noto Sans JP", sans-serif;
+	--pf-r: 18px;
+	--pf-r-sm: 12px;
+	--pf-header-h: 76px;
+	--pf-width: 1200px;
+	--pf-gutter: 40px;
+}
+@supports (color: oklch(from red l c h)) {
+	:root {
+		/* サブの明るさで文字の白／黒を切り替える。メインの上の文字も同じ */
+		--pf-fg: oklch(from var(--pf-sub) clamp(0, (0.62 - l) * 1000, 1) 0 0);
+		--pf-on-main: oklch(from var(--pf-main) clamp(0, (0.62 - l) * 1000, 1) 0 0);
+		--pf-link-ink: oklch(from var(--pf-link) max(l, 0.72) c h);
+		--pf-hover-ink: oklch(from var(--pf-hover) max(l, 0.8) c h);
+	}
+}
+@media (max-width: 640px) {
+	:root { --pf-gutter: 20px; --pf-header-h: 64px; }
+}
+
+/* ---- Base ---- */
+html { scroll-padding-top: var(--pf-header-h); -webkit-text-size-adjust: 100%; background: var(--pf-bg); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+.pf-body { margin: 0; min-height: 100vh; font-family: var(--pf-font); font-size: 16px; line-height: 1.8; color: var(--pf-fg); background: var(--pf-bg); color-scheme: dark; -webkit-font-smoothing: antialiased; }
+.pf-body *, .pf-body *::before, .pf-body *::after { box-sizing: border-box; }
+.pf-body a { color: var(--pf-link-ink); text-underline-offset: 3px; }
+.pf-body a:hover { color: var(--pf-hover-ink); }
+.pf-body img { max-width: 100%; height: auto; }
+.pf-body :focus-visible { outline: 3px solid var(--pf-main); outline-offset: 3px; }
+.pf-body [hidden] { display: none !important; }
+.pf-body :is(h1, h2, h3) { word-break: auto-phrase; }
+.pf-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pf-wrap { max-width: var(--pf-width); margin: 0 auto; padding: 0 var(--pf-gutter); }
+/* 英字の大きなラベル（フォーム画面の見出しの上） */
+.pf-eyebrow { display: block; margin: 0; color: var(--pf-main); font-family: var(--pf-font-en); font-size: 88px; font-weight: 700; letter-spacing: -.03em; line-height: .95; text-transform: uppercase; }
+
+/* ---- Buttons ---- */
+.pf-btn,
+.pf-body a.pf-btn {
+	display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+	min-height: 52px; padding: 0 28px; border: 2px solid transparent; border-radius: 999px;
+	background: var(--pf-main); color: var(--pf-on-main);
+	font: inherit; font-size: 16px; font-weight: 700; line-height: 1.4; text-align: center; white-space: nowrap;
+	text-decoration: none; cursor: pointer; transition: background-color .2s, border-color .2s, color .2s;
+}
+.pf-btn:hover,
+.pf-body a.pf-btn:hover { background: var(--pf-main-hover); color: var(--pf-on-main); }
+.pf-btn--ghost,
+.pf-body a.pf-btn--ghost { border-color: var(--pf-line-strong); background: transparent; color: var(--pf-fg); }
+.pf-btn--ghost:hover,
+.pf-body a.pf-btn--ghost:hover { border-color: var(--pf-main); background: var(--pf-main-soft); color: var(--pf-fg); }
+.pf-btn--sm,
+.pf-body a.pf-btn--sm { min-height: 44px; padding: 0 20px; font-size: 15px; }
+.pf-btn--lg,
+.pf-body a.pf-btn--lg { min-height: 60px; padding: 0 40px; font-size: 17px; }
+
+/* ---- Header ---- */
+.pf-header { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--pf-sub) 90%, transparent); border-bottom: 1px solid var(--pf-line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.pf-header__inner { display: flex; align-items: center; gap: 32px; height: var(--pf-header-h); }
+.pf-header__logo,
+.pf-body .pf-header__logo { display: inline-flex; align-items: center; gap: 10px; flex: none; max-width: 320px; padding: 8px 0; color: var(--pf-fg); font-family: var(--pf-font-en); font-size: 20px; font-weight: 700; letter-spacing: .02em; line-height: 1.3; text-decoration: none; }
+.pf-header__logo img { display: block; max-height: 40px; width: auto; }
+.pf-header__mark { flex: none; width: 14px; height: 14px; border-radius: 4px; background: var(--pf-main); }
+.pf-nav { margin-left: auto; }
+.pf-nav ul { display: flex; gap: 28px; margin: 0; padding: 0; list-style: none; }
+.pf-body .pf-nav a { display: inline-block; padding: 10px 0; color: var(--pf-fg); font-size: 16px; font-weight: 500; text-decoration: none; }
+.pf-body .pf-nav a:hover { color: var(--pf-hover-ink); }
+.pf-header__cta { flex: none; }
+.pf-header__inner > .pf-header__cta:nth-child(2) { margin-left: auto; }
+.pf-burger { display: none; align-items: center; justify-content: center; width: 48px; height: 48px; margin-left: auto; padding: 0; border: 1px solid var(--pf-line-strong); border-radius: var(--pf-r-sm); background: transparent; color: var(--pf-fg); cursor: pointer; }
+.pf-burger svg { width: 22px; height: 22px; }
+.pf-burger .pf-burger__close { display: none; }
+.pf-burger[aria-expanded="true"] .pf-burger__open { display: none; }
+.pf-burger[aria-expanded="true"] .pf-burger__close { display: block; }
+.pf-drawer { padding: 8px var(--pf-gutter) 24px; border-top: 1px solid var(--pf-line); background: var(--pf-bg); }
+.pf-drawer ul { margin: 0; padding: 0; list-style: none; }
+.pf-body .pf-drawer li a { display: flex; align-items: center; min-height: 56px; border-bottom: 1px solid var(--pf-line); color: var(--pf-fg); font-size: 17px; font-weight: 700; text-decoration: none; }
+.pf-body .pf-drawer a.pf-btn { display: flex; width: 100%; margin-top: 20px; }
+.pf-back { margin-left: auto; }
+@media (min-width: 961px) { .pf-drawer { display: none !important; } }
+@media (max-width: 1080px) { .pf-nav ul { gap: 20px; } }
+@media (max-width: 960px) {
+	.pf-nav, .pf-header__cta { display: none !important; }
+	.pf-burger { display: inline-flex; }
+}
+@media (max-width: 640px) {
+	.pf-header__inner { gap: 12px; }
+	.pf-header__logo,
+	.pf-body .pf-header__logo { font-size: 18px; }
+	.pf-body a.pf-back { padding: 0 14px; font-size: 14px; }
+}
+
+/* ---- Main ---- */
+.pf-main { display: block; }
+.pf-main > .pf-flash { max-width: var(--pf-width); margin: 16px auto; padding: 0 var(--pf-gutter); }
+
+/* ---- 本文：空の画像（公開画面のみ） ----
+   BurgerEditor の「選択画像を削除する」は data-bge-empty を "0" のまま img の src だけを空にする。
+   bge_style.css の「空の画像」の点線の枠は編集エリア用なので、公開画面では面の色の枠（仮の画像）にする。 */
+.pf-body .bge-contents img[src=""] { display: none; }
+.pf-body .bge-contents .bgt-image:is([data-bge-empty="1"], :has(img[src=""])) {
+	display: flex; align-items: center; justify-content: center; min-height: 0; padding: 0;
+	border: 1px solid var(--pf-line); border-radius: var(--pf-r-sm); background: var(--pf-surface); aspect-ratio: 4 / 3;
+}
+.pf-body .bge-contents .bgt-image:is([data-bge-empty="1"], :has(img[src=""]))::before { content: none; }
+.pf-body .pf-blk--profile .bgt-image:is([data-bge-empty="1"], :has(img[src=""])) { aspect-ratio: 1 / 1; }
+
+/* ---- 本文：ヒーローの画像が空のときの図形（公開画面のみ） ----
+   bge_style.css に書くと編集エリアでも画像の欄が消え、画像を登録できなくなる。
+   2×2 のマスに、円（::before）・角丸の四角（::after）・四分円と輪（枠の背景のグラデーション）を並べる。マス 48%、間隔 4%。
+   疑似要素の位置と大きさは枠の幅に対する割合（cqw）。枠の背景は、枠自身をコンテナにできない（cqw が外側の基準になる）ので、
+   枠に対する % と位置のキーワード（左下・右下）で描く */
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""]) {
+	--c: 48cqw;
+	--s: 52cqw;
+	position: relative; container-type: inline-size; aspect-ratio: 1 / 1;
+	background:
+		/* 輪（右下）：太さは半径の 20% */
+		radial-gradient(circle closest-side, transparent 80%, var(--pf-main) calc(80% + .5px), var(--pf-main) calc(100% - .5px), transparent 100%) right bottom / 48% 48%,
+		/* 四分円（左下）：右下の角を中心にした、半径＝マスの大きさの円の一部。枠線の弧・右と下の辺・薄い面 */
+		radial-gradient(100% 100% at 100% 100%, var(--pf-main-soft) calc(100% - 2px), var(--pf-main) calc(100% - 2px), var(--pf-main) 100%, transparent 100%) left bottom / 48% 48%,
+		linear-gradient(var(--pf-main), var(--pf-main)) calc(48% - 1px) bottom / 2px 48%,
+		linear-gradient(var(--pf-main), var(--pf-main)) left bottom / 48% 2px;
+	background-repeat: no-repeat;
+}
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""]) > * { display: none; }
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""])::before,
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""])::after {
+	content: ""; position: absolute; top: 0; width: var(--c); height: var(--c);
+}
+/* 円（左上） */
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""])::before { left: 0; border-radius: 50%; background: var(--pf-main); }
+/* 角丸の四角（右上） */
+.pf-body .pf-blk--hero .bgt-grid--last:has([data-bge-empty="1"], img[src=""])::after { left: var(--s); border: 2px solid var(--pf-main-line); border-radius: var(--pf-r); background: var(--pf-surface); }
+
+/* ---- Footer ---- */
+.pf-footer { padding: 56px 0 40px; border-top: 1px solid var(--pf-line); background: var(--pf-bg-alt); }
+.pf-footer .bs-widget { margin: 0; }
+.pf-footer .bs-widget-text { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
+.pf-footer .bs-widget-head { margin: 0 0 4px; font-size: 16px; }
+.pf-footer p { margin: 0; }
+.pf-footer__logo { display: inline-flex; align-items: center; gap: 10px; color: var(--pf-fg); font-family: var(--pf-font-en); font-size: 20px; font-weight: 700; letter-spacing: .02em; }
+.pf-footer__logo::before { content: ""; flex: none; width: 14px; height: 14px; border-radius: 4px; background: var(--pf-main); }
+.pf-footer ul { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; padding: 0; list-style: none; }
+.pf-body .pf-footer ul a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.pf-footer__copy { display: block; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--pf-line); color: var(--pf-muted); font-size: 14px; }
+@media (max-width: 640px) {
+	.pf-footer .bs-widget-text { flex-direction: column; align-items: flex-start; }
+}
+
+/* ---- Form screens（BcMail） ---- */
+.pf-fsec { padding: 72px 0 120px; }
+.pf-fsec > .pf-wrap { max-width: calc(800px + var(--pf-gutter) * 2); }
+.pf-fhead { display: flex; flex-direction: column; }
+.pf-fhead__title { margin: 18px 0 0; color: var(--pf-fg); font-size: 30px; font-weight: 900; line-height: 1.5; }
+.pf-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 40px 0 0; padding: 0; list-style: none; }
+.pf-steps li { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; border: 1px solid var(--pf-line-strong); border-radius: var(--pf-r-sm); background: var(--pf-field); color: var(--pf-muted); font-size: 16px; font-weight: 700; }
+.pf-steps__n { font-family: var(--pf-font-en); }
+.pf-steps li.is-current { border-color: var(--pf-main); background: var(--pf-main); color: var(--pf-on-main); }
+.pf-steps li.is-done { border-color: var(--pf-main-line); color: var(--pf-fg); }
+.pf-fbox__lead { margin: 32px 0 0; color: var(--pf-muted); }
+.pf-fbox__lead > * { margin: 0; }
+.pf-fbox__lead > * + * { margin-top: 8px; }
+/* 入力エラーのときのメッセージ（BcBaser->flash() の出力） */
+.pf-fbox .message-box { margin: 32px 0 0; }
+.pf-fbox .message { padding: 18px 22px; border: 2px solid var(--pf-main); border-radius: var(--pf-r-sm); background: var(--pf-main-soft); font-weight: 700; }
+.pf-done { padding-top: 24px; text-align: center; }
+.pf-done__icon { display: flex; align-items: center; justify-content: center; width: 96px; height: 96px; margin: 48px auto 0; border-radius: 50%; background: var(--pf-main); color: var(--pf-on-main); }
+.pf-done__title { margin: 32px 0 0; color: var(--pf-fg); font-size: 28px; font-weight: 900; line-height: 1.5; }
+.pf-done__message { max-width: 560px; margin: 0 auto; color: var(--pf-muted); }
+.pf-done__message > * { margin: 20px 0 0; }
+.pf-done .pf-btn { margin-top: 48px; }
+
+/* フォーム本体（bc-front の mail_form / mail_input の出力構造に当てる）：見出しの上、入力欄の下に並べる */
+.pf-form { margin-top: 24px; }
+.pf-form .bs-mail-form-body { display: block; width: 100%; border-collapse: collapse; }
+.pf-form .bs-mail-form-body tbody { display: block; }
+.pf-form .bs-mail-form-body tr { display: block; padding: 28px 0; border-bottom: 1px solid var(--pf-line); }
+.pf-form .bs-mail-form-body tr:first-child { border-top: 1px solid var(--pf-line); }
+.pf-form .bs-mail-form-body th,
+.pf-form .bs-mail-form-body td { display: block; width: auto; padding: 0; border: 0; background: none; text-align: left; }
+.pf-form .bs-mail-form-body th.col-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--pf-fg); font-size: 17px; font-weight: 700; line-height: 1.5; }
+.pf-form .col-head label { color: inherit; }
+.pf-form .required,
+.pf-form .normal { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 700; line-height: 1.4; }
+.pf-form .required { background: var(--pf-main); color: var(--pf-on-main); }
+.pf-form .normal { border: 1px solid var(--pf-line-strong); color: var(--pf-muted); }
+.pf-form .col-input { color: var(--pf-fg); }
+.pf-form .col-input > span[id^="FieldMessage"] { display: inline; }
+.pf-form .bs-mail-before-attachment,
+.pf-form .bs-mail-after-attachment { color: var(--pf-muted); font-size: 15px; }
+.pf-form .bs-mail-attention,
+.pf-form .bs-mail-description { display: block; margin: 8px 0 0; color: var(--pf-muted); font-size: 15px; }
+/* 説明文（個人情報の取り扱いなど）は面の色の枠 */
+.pf-form .bs-mail-description { margin: 0 0 16px; padding: 18px 20px; border: 1px solid var(--pf-line); border-radius: var(--pf-r-sm); background: var(--pf-surface); }
+.pf-form input[type="text"],
+.pf-form input[type="email"],
+.pf-form input[type="tel"],
+.pf-form input[type="number"],
+.pf-form input[type="password"],
+.pf-form select,
+.pf-form textarea {
+	display: block; width: 100%; min-height: 54px; padding: 12px 16px;
+	border: 1px solid var(--pf-line-strong); border-radius: var(--pf-r-sm); background: var(--pf-field);
+	color: var(--pf-fg); font: inherit; font-size: 16px; line-height: 1.6;
+}
+.pf-form textarea { min-height: 200px; resize: vertical; }
+.pf-form ::placeholder { color: var(--pf-muted); opacity: .85; }
+.pf-form input:focus,
+.pf-form select:focus,
+.pf-form textarea:focus { outline: 3px solid var(--pf-main); outline-offset: 1px; border-color: var(--pf-main); }
+/* 欄の幅（メールフィールドの「クラス名」に入れる） */
+.pf-form .pf-w-md { max-width: 320px; }
+/* 姓・名のように class="form-s" の欄が並ぶ行は2列にする */
+.pf-form .col-input:has(input.form-s) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pf-form .col-input:has(input.form-s) > span[id^="FieldMessage"] { display: block; }
+.pf-form .col-input:has(input.form-s) > :not(span[id^="FieldMessage"]) { grid-column: 1 / -1; }
+/* ラジオ・チェックボックス：選択肢を枠で囲んで並べる（選択肢は span#FieldMessage〇〇 の中に「span > input + label」で並ぶ） */
+.pf-form span[id^="FieldMessage"]:has(> span > :is(input[type="radio"], input[type="checkbox"])) { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+.pf-form span[id^="FieldMessage"]:has(> span > :is(input[type="radio"], input[type="checkbox"])) > :not(:has(> input)) { grid-column: 1 / -1; }
+.pf-form span[id^="FieldMessage"]:has(> span > :is(input[type="radio"], input[type="checkbox"])) > :not(:has(> input)):empty { display: none; }
+.pf-form .col-input span:has(> :is(input[type="radio"], input[type="checkbox"])) {
+	position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px;
+	border: 1px solid var(--pf-line-strong); border-radius: var(--pf-r-sm); background: var(--pf-field); font-weight: 500;
+}
+.pf-form .col-input span:has(> :is(input[type="radio"], input[type="checkbox"]):checked) { border-color: var(--pf-main); background: color-mix(in srgb, var(--pf-main) 12%, var(--pf-field)); }
+/* ラベル全体を押せるようにする */
+.pf-form .col-input span:has(> :is(input[type="radio"], input[type="checkbox"])) label { cursor: pointer; }
+.pf-form .col-input span:has(> :is(input[type="radio"], input[type="checkbox"])) label::after { content: ""; position: absolute; inset: 0; }
+.pf-form input[type="radio"],
+.pf-form input[type="checkbox"] { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--pf-main); }
+/* 選択肢が1つだけのチェックボックス（個人情報の取り扱い）は、中身の幅にする */
+.pf-form span[id^="FieldMessage"]:has(> span > input[type="checkbox"]):not(:has(> span + span > input)) { display: flex; flex-wrap: wrap; align-items: flex-start; }
+.pf-form span[id^="FieldMessage"]:has(> span > input[type="checkbox"]):not(:has(> span + span > input)) > :not(:has(> input)) { flex-basis: 100%; }
+/* エラー */
+.pf-form .error-message { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--pf-main); font-size: 15px; font-weight: 700; }
+.pf-form .error-message::before { content: "※"; }
+.pf-form .form-error { border: 2px solid var(--pf-main) !important; }
+/* ボタン */
+.pf-form .bs-mail-form-submit { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 48px; }
+.pf-form .bs-mail-form-submit .bs-button {
+	display: inline-flex; align-items: center; justify-content: center; min-width: 240px; min-height: 60px; padding: 0 40px;
+	border: 2px solid transparent; border-radius: 999px; background: var(--pf-main); color: var(--pf-on-main);
+	font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; transition: background-color .2s, border-color .2s;
+}
+.pf-form .bs-mail-form-submit .bs-button:hover { background: var(--pf-main-hover); }
+.pf-form .bs-mail-form-submit #BtnMessageBack,
+.pf-form .bs-mail-form-submit input[type="reset"] { border-color: var(--pf-line-strong); background: transparent; color: var(--pf-fg); }
+.pf-form .bs-mail-form-submit #BtnMessageBack:hover { border-color: var(--pf-main); background: var(--pf-main-soft); }
+/* 確認画面（freeze 時は値のテキストが出る）：枠付きの一覧にする */
+.pf-form.is-confirm .bs-mail-form-body { overflow: hidden; border: 1px solid var(--pf-line-strong); border-radius: var(--pf-r); background: var(--pf-field); }
+.pf-form.is-confirm .bs-mail-form-body tr { display: grid; grid-template-columns: 220px minmax(0, 1fr); padding: 0; border: 0; border-top: 1px solid var(--pf-line); }
+.pf-form.is-confirm .bs-mail-form-body tr:first-child { border-top: 0; }
+.pf-form.is-confirm .bs-mail-form-body th.col-head { margin: 0; padding: 20px 24px; background: color-mix(in srgb, var(--pf-main) 8%, var(--pf-sub)); font-size: 16px; }
+.pf-form.is-confirm .bs-mail-form-body td { padding: 20px 24px; }
+.pf-form.is-confirm .required,
+.pf-form.is-confirm .normal,
+.pf-form.is-confirm .bs-mail-description,
+.pf-form.is-confirm .bs-mail-attention { display: none; }
+.pf-form.is-confirm .col-input { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* 複数選択（チェックボックス）の値は箇条書きで出るので、余白を詰める */
+/* （BcMail は箇条書きの後ろに hidden の入力と &nbsp; を出し、その行が空白になるので、欄の文字の大きさを0にして箇条書きだけ戻す） */
+.pf-form.is-confirm .col-input:has(ul, ol) { white-space: normal; }
+.pf-form.is-confirm .col-input:has(ul, ol) > span[id^="FieldMessage"] { display: block; font-size: 0; line-height: 0; }
+.pf-form.is-confirm .col-input :is(ul, ol) { margin: 0; padding-left: 1.2em; font-size: 16px; line-height: 1.8; }
+.pf-form.is-confirm .col-input:has(input.form-s) { display: block; }
+.pf-form.is-confirm .col-input:has(input.form-s) > span[id^="FieldMessage"] { display: inline; }
+/* 日付のカレンダー（jQuery UI）をテーマの色に寄せる */
+.ui-datepicker { z-index: 40 !important; font-family: var(--pf-font); }
+.ui-datepicker .ui-state-active,
+.ui-datepicker .ui-state-highlight { border-color: var(--pf-main); background: var(--pf-main); color: var(--pf-on-main); }
+@media (max-width: 1080px) { .pf-eyebrow { font-size: 72px; } }
+@media (max-width: 640px) {
+	.pf-eyebrow { font-size: 52px; }
+	.pf-fsec { padding: 48px 0 80px; }
+	.pf-fhead__title { font-size: 24px; }
+	.pf-steps li { flex-direction: column; gap: 0; min-height: 60px; font-size: 15px; }
+	.pf-form .bs-mail-form-submit { flex-direction: column-reverse; }
+	.pf-form .bs-mail-form-submit .bs-button { width: 100%; min-width: 0; }
+	.pf-form.is-confirm .bs-mail-form-body tr { grid-template-columns: minmax(0, 1fr); }
+	.pf-form.is-confirm .bs-mail-form-body th.col-head { padding: 14px 18px 12px; }
+	.pf-form.is-confirm .bs-mail-form-body td { padding: 14px 18px 18px; }
+	.pf-done .pf-btn { width: 100%; }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+	.pf-body *, .pf-body *::before, .pf-body *::after { transition: none !important; animation: none !important; }
+}

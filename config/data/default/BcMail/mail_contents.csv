@@ -1,0 +1,2 @@
+﻿id,description,thanks,unpublish,sender_1,sender_2,sender_name,subject_user,subject_admin,form_template,mail_template,redirect_url,auth_captcha,widget_area,ssl_on,save_info,publish_begin,publish_end,created,modified
+1,<p>下記のフォームに入力して、「入力内容を確認する」を押してください。2営業日以内にご返信します。</p>,<p>お問い合わせいただき、ありがとうございます。内容を確認のうえ、2営業日以内にご返信します。</p><p>確認のため、ご入力いただいたメールアドレスに自動返信メールをお送りしています。届かない場合は、迷惑メールのフォルダもご確認ください。</p>,,,,"山田 花子","【山田 花子】お問い合わせを受け付けました",【ポートフォリオ】お仕事の依頼・相談がありました,default,mail_default,,,,,1,,,,
